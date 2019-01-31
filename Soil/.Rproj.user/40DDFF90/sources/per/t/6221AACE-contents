@@ -1,8 +1,8 @@
 library("tidyverse")
-library("psych")
+library("DescTools")
 library("qdapRegex")
 
-setwd("C:/Users/sfper/Dropbox/DiStefano_WRFO_project/PSA")
+setwd("C:/Users/sfper/Documents/R/WRFO_git/Soil")
 
 # importing file
 # particle size class determinations that were made manually in excel 
@@ -89,7 +89,6 @@ write.csv(psc.pair.wide, "ART.pair.psc.comparison.csv")
 
 #### COHEN'S KAPPA ####
 # measure of agreement between 2 "raters" for categorical variables 
-library(DescTools)
 
 # comparing psc agreement between art plot pairs 
 # art plots that share the same reference and reclamation (14 comparisons)

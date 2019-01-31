@@ -1,0 +1,15 @@
+"","Site","art.plot.x","art.rock.x","art.clay.x","art.bedrock.x","art.psc.x","art.plot.y","art.rock.y","art.clay.y","art.bedrock.y","art.psc.y","psc.match"
+"1","A-30-3-101S ","A-30-3-101S Plot 1",18,11.24842491,25,"loamy","A-30-3-101S Plot 2",37.78571429,29.24507316,70,"loamy skeletal",FALSE
+"2","A-30-3-101S Rd ","A-30-3-101S Rd Plot 1",34.37142857,16.51744933,70,"coarse loamy","A-30-3-101S Rd Plot 2",7.285714286,10.97774397,70,"fine silty",FALSE
+"3","Cath Fed 30 01 ","Cath Fed 30 01 Plot 1",16.86666667,30.69672522,60,"fine loamy","Cath Fed 30 01 Plot 2",32.98571429,17.22577446,70,"coarse loamy",FALSE
+"4","Cath Fed 30 01 Rd ","Cath Fed 30 01 Rd Plot 1",1.608695652,18.61368994,23,"loamy","Cath Fed 30 01 Rd Plot 2",9.305555556,24.3125164,36,"loamy",TRUE
+"5","Cath Fed P 35 3 101 ","Cath Fed P 35 3 101 Plot 1",1.416666667,24.55505798,60,"fine silty","Cath Fed P 35 3 101 Plot 2",8.971428571,13.3480186,70,"course silty",FALSE
+"6","Cath Fed P 35 3 101 Rd ","Cath Fed P 35 3 101 Rd Plot 1",0,NA,70,"loamy","Cath Fed P 35 3 101 Rd Plot 2",2.507142857,22.98933651,40,"loamy",TRUE
+"7","Cities Fed 07 31 ","Cities Fed 07 31 Plot 1",1.271428571,30.29405608,70,"fine silty","Cities Fed 07 31 Plot 2",3,20.60487072,70,"fine silty",TRUE
+"8","DTU 1022 ","DTU 1022 Plot 1",14.27142857,34.44996911,70,"fine silty","DTU 1022 Plot 2",14.44285714,24.66525379,70,"fine silty",TRUE
+"9","DTU 1058 ","DTU 1058 Plot 1",5.425,12.22649316,40,"course silty","DTU 1058 Plot 2",25.61764706,19.92507902,32,"fine loamy",FALSE
+"10","Federal 30-16 ","Federal 30-16 Plot 1",33.04444444,41.8275438,45,"clayey","Federal 30-16 Plot 2",44.575,28.53491211,40,"loamy skeletal",FALSE
+"11","Pk Mtn 9016 ","Pk Mtn 9016 Plot 1",0.857142857,29.44326462,70,"fine silty","Pk Mtn 9016 Plot 2",25.25263,27.2093023,43,"loamy",FALSE
+"12","SDC 7326 ","SDC 7326 Plot 1",5.542857143,25.66524296,70,"fine silty","SDC 7326 Plot 2",31.15714286,19.50208357,70,"fine loamy",FALSE
+"13","SDC 7326 Rd ","SDC 7326 Rd Plot 1",6.833333333,10.48349777,30,"loamy","SDC 7326 Rd Plot 2",11.33846154,43.11422955,65,"fine",FALSE
+"14","SWR 6003 ","SWR 6003 Plot 1",15.65714286,15.74824926,35,"loamy","SWR 6003 Plot 2",3.6,21.28754126,15,"loamy",TRUE

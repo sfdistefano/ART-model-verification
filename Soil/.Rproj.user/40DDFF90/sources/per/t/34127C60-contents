@@ -2,7 +2,7 @@ library("tidyverse")
 library("soiltexture")
 library("qdapRegex")
 
-setwd("C:/Users/sfper/Dropbox/DiStefano_WRFO_project/PSA")
+setwd("C:/Users/sfper/Documents/R/WRFO_git/Soil")
 
 #### IMPORT ####
 # depth to bedrock
