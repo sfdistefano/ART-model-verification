@@ -1,0 +1,23 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1547586773962.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "6|12|18|0|\n19|32|35|0|\n36|33|44|0|\n45|34|72|0|\n",
+    "hash" : "1192630137",
+    "id" : "34127C60",
+    "lastKnownWriteTime" : 1547596106,
+    "last_content_update" : 1548717310841,
+    "path" : "C:/Users/sfper/Dropbox/DiStefano_WRFO_project/WRFO_R/Soil/determine.PSC.R",
+    "project_path" : null,
+    "properties" : {
+        "cursorPosition" : "74,56",
+        "scrollLine" : "0",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

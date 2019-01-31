@@ -1,0 +1,87 @@
+library("tidyverse")
+library("psych")
+library("qdapRegex")
+
+setwd("C:/Users/sfper/Dropbox/DiStefano_WRFO_project/PSA")
+
+# importing file
+# particle size class determinations that were made manually in excel 
+# based on criteria from  "Keys to Soil Taxonomy"
+art.psc <- read.csv("psc.calc.csv")
+ref.psc <- read.csv("ref.soil.field_and_PSC.csv")
+
+#### CLEANING DATA ####
+# adding site column from cleaned Plot names to art data so that art data 
+# can later be compared to their reference
+art.psc$Site <- gsub(pattern = "Plot 1|Plot 2", 
+                     x = art.psc$Plot, 
+                     replacement = "")
+# removing left over white space from previous phrase removal
+art.psc$Site <- rm_white(art.psc$Site)
+# renaming columns so that there will only be 11 site names 
+# (the actual number of references)
+art.psc$Site <- gsub(pattern = "A-30-3-101S Rd", 
+                     replacement = "A-30-3-101S", 
+                     x = art.psc$Site)
+art.psc$Site <- gsub(pattern = "SDC 7326 Rd", 
+                     replacement = "SDC 7326", 
+                     x = art.psc$Site)
+art.psc$Site <- gsub(pattern = "Cath Fed 30 01 Rd", 
+                     replacement = "Cath Fed 30 01", 
+                     x = art.psc$Site)
+# cleaning up Site names so that they can be correctly merged with their ART plots
+ref.psc$Site <- gsub(pattern = "[()]|D25 1103|L19 2101|FR", 
+                     replacement = "", 
+                     x = ref.psc$Site)
+# removing extra white space from cleaned site names
+ref.psc$Site <- rm_white(ref.psc$Site)
+# renaminb columns so it's not confusing after merge
+colnames(ref.psc) <- c("Site", "Reference", "ref.bedrock", "ref.rock", 
+                       "ref.clay", "ref.psc")
+colnames(art.psc) <- c("X", "art.plot", "art.rock","art.clay", "art.bedrock", 
+                       "art.sand", "art.psc", "Site")
+#### COMPARING ART PLOT to REFERENCE ####
+# merging reference particle size class data with that of ART plots 
+# so that they can be compared
+psc.tot <- merge(art.psc, ref.psc, by = "Site")[,c("Site", "art.plot", "art.clay",
+                                                   "art.bedrock", "art.rock","art.psc", 
+                                                   "Reference", "ref.bedrock", "ref.rock",
+                                                   "ref.clay", "ref.psc")]
+# creating column when ART plots matched their reference
+psc.tot$psc.match <- ifelse(as.character(psc.tot$art.psc) == as.character(psc.tot$ref.psc), 
+                             "match", "no match")
+
+
+write.csv(psc.tot, "psc.comparison.csv")
+# agreement table between ART plots and their reference based on psc
+table(x = psc.tot[c("art.psc", "ref.psc")])
+
+
+
+#### COMPARING ART PLOT PAIRS ####
+# creating dataframe for art plot pairs (share the same reclamation and reference)
+psc.pair <- art.psc
+# removing characters in plot name just to have the plot numbers
+psc.pair$plot.num <-gsub(".*Plot", "", psc.pair$art.plot)
+# removing excess white space for previous clean
+psc.pair$plot.num <- rm_white(psc.pair$plot.num)
+# renaming sites so that there will be 14 different reclamation for 14 pairs
+# otherwise there will only be 11 (the number of reference sites)
+psc.pair$Site<- gsub(pattern = "Plot 1|Plot 2", 
+                          replacement ="", 
+                          psc.pair$art.plot)
+# separating plot pairs so that they can later be combined in a wide database
+psc.pair1 <- psc.pair[psc.pair$plot.num == "1",]
+psc.pair2 <- psc.pair[psc.pair$plot.num == "2",]
+# merging plot pairs so that their data is side by side for comparison
+psc.pair.wide <- merge(psc.pair1, psc.pair2, 
+               by = "Site")[,c("Site", "art.plot.x", "art.rock.x", "art.clay.x",
+                               "art.bedrock.x", "art.psc.x", "art.plot.y",
+                               "art.rock.y", "art.clay.y", "art.bedrock.y",
+                               "art.psc.y")]
+# agreement table within plot pairs based on psc
+table(psc.pair.wide[c("art.psc.x", "art.psc.y")])
+# creating T/F column whether psc pairs match
+psc.pair.wide$psc.match <- psc.pair.wide$art.psc.x == psc.pair.wide$art.psc.y
+
+write.csv(psc.pair.wide, "ART.pair.psc.comparison.csv")
