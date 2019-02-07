@@ -71,6 +71,19 @@ colnames.num <- c("grav.moist", "tin.wt", "tin.samp.wt", "tin.samp.oven.wt", "su
 soil.art[, colnames.num] <- sapply(soil.art[, colnames.num], as.numeric)
 soil.ref[, colnames.num] <- sapply(soil.ref[, colnames.num], as.numeric)
 
+# cleaning site names so that they will merge correctly later on
+soil.art$site <- gsub(soil.art$site, pattern = "Cath Fed 30 01 Rd", 
+                           replacement = "Cath Fed 30 01")
+soil.art$site <- gsub(soil.art$site, pattern = "SDC 7326 Rd", 
+                           replacement = "SDC 7326")
+soil.art$site <- gsub(soil.art$site, pattern = "A-30-3-101S Rd", 
+                           replacement = "A-30-3-101S")
+soil.ref$site <- gsub(soil.ref$site, pattern = "Fed 30 16",
+                           replacement = "Fed 30-16")
+soil.ref[soil.ref$site == "Cath Fed P 35 3 101" & 
+           soil.ref$plot == "Cath Fed P 35 3 101 Road Ref", 
+              "site"] <- "Cath Fed P 35 3 101 Rd"
+
 #### WATER HOLDING CAPACITY ####
 
 ### ART PLOTS ###
@@ -102,19 +115,6 @@ total.whc.art <- unique(merge(total.whc.art, soil.art[,c("site", "plot")], by = 
 colnames(total.whc.art) <- c("art.plot", "art.grav.moist", "site")
 colnames(total.whc.ref) <- c("ref.site", "ref.grav.moist", "site")
 
-# cleaning site names so that they will merge correctly
-total.whc.art$site <- gsub(total.whc.art$site, pattern = "Cath Fed 30 01 Rd", 
-                           replacement = "Cath Fed 30 01")
-total.whc.art$site <- gsub(total.whc.art$site, pattern = "SDC 7326 Rd", 
-                           replacement = "SDC 7326")
-total.whc.art$site <- gsub(total.whc.art$site, pattern = "A-30-3-101S Rd", 
-                           replacement = "A-30-3-101S")
-total.whc.ref$site <- gsub(total.whc.ref$site, pattern = "Fed 30 16",
-                           replacement = "Fed 30-16")
-total.whc.ref[total.whc.ref$site == "Cath Fed P 35 3 101" & 
-                total.whc.ref$ref.site == "Cath Fed P 35 3 101 Road Ref", 
-                "site"] <- "Cath Fed P 35 3 101 Rd"
-  
 # there should only be 11 unique sites
 unique(total.whc.art$site)
 unique(total.whc.ref$site)
@@ -140,11 +140,14 @@ ggplotRegression <- function(fit){
                        " p-value =",signif(summary(fit)$coef[2,4], 2)))
 }
 
-# removing outlier
+# removing 3 outliers
 whc.wide <- whc.wide[!(whc.wide$art.plot == "Fed 30-16 Plot 2"|
                          whc.wide$ref.site == "Cath Fed P 35 3 101 Ref"),]
 
-
+# graphing the relationship between ART plots and there reference
+# comparing water holding capacity aka gravimetric moisture
+# these values were obtained by air drying and then oven drying samples 
+# for 48 hrs at 105 degrees celsius
 ggplotRegression(lm(ref.grav.moist ~ art.grav.moist, data = whc.wide)) +
   xlab("ART Plot Water Holding Capacity (%) ") +
   ylab("Reference Water Holding Capacity (%)") +
@@ -154,3 +157,67 @@ ggplotRegression(lm(ref.grav.moist ~ art.grav.moist, data = whc.wide)) +
   theme(axis.text = element_text(size = 12),
         axis.title = element_text(size = 12))
 
+
+#### ROCK FRAGMENT % ####
+## reference sites
+# weighting each horizon's rock % by it's depth within the soil pedon
+soil.ref$hor.rock.wt <- (soil.ref$Total.Rock.Fragments..vol * soil.ref$hor.depth)/
+  soil.ref$Total.Soil.Pedon.Depth
+# summing all rock %s from all horizons in each plot
+total.rock.ref <- aggregate(data = soil.ref, hor.rock.wt ~ plot, sum)
+
+## art plots
+# weighting each horizon's rock % by it's depth within the soil pedon
+soil.art$hor.rock.wt <- (soil.art$Total.Rock.Fragments..vol * soil.art$hor.depth)/
+  soil.art$Total.Soil.Pedon.Depth
+# summing all rock %s from all horizons in each plot
+total.rock.art <- aggregate(data = soil.art, hor.rock.wt ~ plot, sum)
+
+# adding site column
+# some rows are duplicated which is why I added unique()
+total.rock.ref <- unique(merge(total.rock.ref, soil.ref[,c("site", "plot")], by = "plot"))
+total.rock.art <- unique(merge(total.rock.art, soil.art[,c("site", "plot")], by = "plot"))
+
+# renaming columns to make less confusing
+colnames(total.rock.art) <- c("art.plot", "art.rock", "site")
+colnames(total.rock.ref) <- c("ref.site", "ref.rock", "site")
+
+# merging so that art plots can be compared with their reference
+# rows should be equal to the number of rows in total.rock.art
+rock.wide <- merge(total.rock.art, total.rock.ref, by = "site")
+
+## difference between art plots and ref
+rock.wide$rock.diff <- abs(rock.wide$art.rock - rock.wide$ref.rock)
+
+## Frequency table for rock fragment % differences 
+#between art plots and their reference
+rock.diff <- rock.wide$rock.diff
+# breaks for table
+# range from 0 to 40, with a break every 10
+rock.breaks <- seq(0, 40, by = 10)
+# categorizing data by breaks
+rock.cut = cut(rock.diff, rock.breaks, right = FALSE)
+# frequency table
+rock.freq = table(rock.cut)
+
+#### BEDROCK ####
+# creating a separate df of bedrock depth
+bedrock.ref <- unique(soil.ref[,c("site", "plot", "Total.Soil.Pedon.Depth")])
+colnames(bedrock.ref) <- c("site", "ref.site", "ref.bedrock")
+bedrock.art <- unique(soil.art[,c("site", "plot", "Total.Soil.Pedon.Depth")])
+colnames(bedrock.art) <- c("site", "art.plot", "art.bedrock")
+# wide dataframe to compare art plot bedrock depth to ref site bedrock depth
+bedrock.wide <- merge(bedrock.art, bedrock.ref, by = "site")
+
+bedrock.wide$bedrock.diff <- abs(bedrock.wide$art.bedrock - bedrock.wide$ref.bedrock)
+
+## Frequency table for bedrock depth differences 
+#between art plots and their reference
+bedrock.diff <- bedrock.wide$bedrock.diff
+# breaks for table
+# range from 0 to 40, with a break every 10
+bedrock.breaks <- seq(0, 40, by = 10)
+# categorizing data by breaks
+bedrock.cut = cut(bedrock.diff, bedrock.breaks, right = FALSE)
+# frequency table
+bedrock.freq = table(bedrock.cut)
