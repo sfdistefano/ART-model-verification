@@ -3,6 +3,7 @@ library(readxl)
 library(tidyverse)
 library(qdapRegex)
 library(ggplot2)
+library(Metrics)
 
 
 setwd("C:/Users/sfper/Documents/R/WRFO_git/Soil/PSA_data.entry")
@@ -149,8 +150,8 @@ whc.wide <- whc.wide[!(whc.wide$art.plot == "Fed 30-16 Plot 2"|
 # these values were obtained by air drying and then oven drying samples 
 # for 48 hrs at 105 degrees celsius
 ggplotRegression(lm(ref.grav.moist ~ art.grav.moist, data = whc.wide)) +
-  xlab("ART Plot Water Holding Capacity (%) ") +
-  ylab("Reference Water Holding Capacity (%)") +
+  xlab("ART Gravimetric Moisture θg") +
+  ylab("Reference Gravimetric Moisture θg") +
   # geom_abline(linetype = "dashed")
   # scale_y_continuous(breaks = c(0.0, 0.02, 0.04, 0.06, 0.08)) +
   # scale_x_continuous(breaks = c(0.0, 0.02, 0.04, 0.06, 0.08)) +
@@ -200,6 +201,9 @@ rock.cut = cut(rock.diff, rock.breaks, right = FALSE)
 # frequency table
 rock.freq = table(rock.cut)
 
+## statistics: root mean square error
+Metrics::rmse(rock.wide$art.rock, rock.wide$ref.rock)
+
 #### BEDROCK ####
 # creating a separate df of bedrock depth
 bedrock.ref <- unique(soil.ref[,c("site", "plot", "Total.Soil.Pedon.Depth")])
@@ -221,3 +225,6 @@ bedrock.breaks <- seq(0, 40, by = 10)
 bedrock.cut = cut(bedrock.diff, bedrock.breaks, right = FALSE)
 # frequency table
 bedrock.freq = table(bedrock.cut)
+
+## statistics: root mean square error
+Metrics::rmse(bedrock.wide$art.bedrock, bedrock.wide$ref.bedrock)
