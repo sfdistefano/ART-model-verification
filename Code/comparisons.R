@@ -9,10 +9,25 @@ library(reshape2)
 library(lubridate)
 
 setwd("C:/Users/sfper/Documents/R/WRFO_git")
-# reading in all UT Gas Corp reference sites
-ref.sites <- as.data.frame(readOGR("C:/Users/sfper/Documents/R/WRFO_git/WRFO_reference_UtahGas_plot_locations.shp"))
-# filtering out reference sites that won't be used
+
+#### IMPORTING DATA ####
+
+# line-point-intercept (LPI) cover by functional group 
+func.group <- read.csv("functional.group.lpi.cover.csv")
+# results from vegetative similarity analysis (reference vs ART plot)
 similarity.ref <- read.csv("C:/Users/sfper/Documents/R/WRFO_git/bray.csv")
+# results from diversity analysis (each plot and reference has it's own diversity value)
+# NOT comparison results
+diversity <- read.csv("diversity.results.csv")[,c("SiteName", "PlotID", "simpson", "shannon")]
+# reading in all UT Gas Corp reference sites' locations
+ref.sites <- as.data.frame(readOGR("C:/Users/sfper/Documents/R/WRFO_git/WRFO_reference_UtahGas_plot_locations.shp"))
+
+# general information about the reclamation sites
+ART.info <- read.csv("UT_GasCorp_reclamation_sites_info.csv")
+
+#### CLEANING & CREATING DATA ####
+
+# filtering out reference sites that won't be used
 ART.ref.sites <- ref.sites %>% filter(PlotID %in% similarity.ref$Plot1)
 # adding the reference site that had blank LPI data so that I can create a complete shapefile # should be 11 reference plots
 # ART.ref.sites <- rbind(ART.ref.sites, ref.sites[ref.sites$PlotID == "SDC 7326 Reference",])
@@ -53,8 +68,7 @@ similarity_ref.ART <- similarity_ref.ART[!(similarity_ref.ART$Plot1 == "Cath Fed
                                              similarity_ref.ART$Plot2 == "Cath Fed P 35 3 101 Rd Plot 2"),]
 
 ### DIVERSITY COMPARISONS ####
-# creates master comparison df of a plot's ART value to its bray-curtis, simpson, and shannon values
-diversity <- read.csv("diversity.results.csv")[,c("SiteName", "PlotID", "simpson", "shannon")]
+## creates master comparison df of a plot's ART value to its bray-curtis, simpson, and shannon values
 
 # extract reference site rows
 ref.diversity <- diversity[grep("Reference|Road Ref", diversity$PlotID),]
@@ -65,8 +79,7 @@ colnames(plot.diversity) <- c("SiteName", "ARTPlot", "ART.simp", "ART.shann")
 # sets up for comparison of a plot's diversity to its reference
 diversity.wide <- merge(ref.diversity, plot.diversity, by = "SiteName", all.x = T)
 
-#### MASTER ANALYSIS DATAFRAME ####
-ART.info <- read.csv("UT_GasCorp_reclamation_sites_info.csv")
+#### CREATING MASTER ANALYSIS DATAFRAME ####
 
 ## adding SiteName column for later merge
 ART.analysis <- merge(x = similarity_ref.ART, y = diversity, 
@@ -96,9 +109,15 @@ ART.analysis <- ART.analysis %>% mutate(SiteName = ifelse(Plot2 == "SDC 7326 FR 
 ART.analysis <- ART.analysis %>% mutate(SiteName = ifelse(Plot2 == "SDC 7326 FR Rd Plot 2" & SiteName == "Well pad SDC 7326", "SDC 7326 FR Road", SiteName))
 
 # adding well pad or road abandonment date (when reclamation began)
-comparisons <- merge(x = ART.analysis, y = ART.info, by = "SiteName", all.x = T)[,c("SiteName", "Plot1", "Plot2", "bray.sim", "Abandon_date", "ART.value")]
-# converting date column to a date data format 
-comparisons$Abandon_date <- lubridate::mdy(comparisons$Abandon_date)
+# adding functional group lpi data cover for ART plot and their reference
+comparisons <- merge(x = ART.analysis, y = ART.info, 
+                     by = "SiteName", all.x = T)[,c("SiteName", "Plot1", "Plot2", 
+                                                    "bray.sim", "Abandon_date", "ART.value")] %>%
+               merge(func.group, by.x = c("SiteName","Plot1", "Plot2"), 
+                     by.y = c("SiteName" ,"Reference", "ART.plot"))
+
+# converting date column to a calendar date data format 
+comparisons$Abandon_date <- lubridate::mdy(comparisons$Abandon_date) # designating that the format is month/day/year
 # extracting year from date
 comparisons$abandon_year <- lubridate::year(comparisons$Abandon_date)
 

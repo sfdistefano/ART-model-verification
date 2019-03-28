@@ -29,8 +29,8 @@ lpi.tall <- gather.lpi(ART.dima.tables, species.characteristics = F)
 
 lpi.tall.layers <- lpi.tall$layers
 
-# filtering out rows with non-foliar cover
-lpi.veg <- lpi.tall.layers[!(lpi.tall.layers$code %in% non.foliar),]
+# filtering out rows with non-foliar cover # and adding duration and growth habit to point data
+lpi.veg <- lpi.tall.layers[!(lpi.tall.layers$code %in% non.foliar),] %>% merge(species, by = "code")
 # adding foliar column # this way you can look at total foliar later
 lpi.veg$foliar <- "foliar"
 # summary of vegetation cover by plant species
@@ -53,7 +53,7 @@ UT.lpi.tall <- gather.lpi(UTGas.dima.tables, species.characteristics = F)
 UT.lpi.tall.layers <- UT.lpi.tall$layers
 
 # filtering out rows with non-foliar cover
-UT.lpi.veg <- UT.lpi.tall.layers[!(UT.lpi.tall.layers$code %in% non.foliar),]
+UT.lpi.veg <- UT.lpi.tall.layers[!(UT.lpi.tall.layers$code %in% non.foliar),] %>% merge(species, by = "code")
 # adding foliar column # this way you can look at total foliar later
 UT.lpi.veg$foliar <- "foliar"
 
@@ -89,47 +89,51 @@ summ.cover$SiteName <- gsub(pattern = "CATH FED 30 01 Well Pad",
                             x = summ.cover$SiteName)
 #### LPI DATA BY FUNCTIONAL GROUP ####
 
-### Still working on this, right NOW imported DIMA data doesn't have species characteristics ###
+## summarizing lpi data based on functional group
+# we're interested in shrubs, perennial grasses, and invasives
+summ.ART.fg.cover <- pct.cover(lpi.tall = lpi.veg,
+                               tall = FALSE,
+                               hit = "any",
+                               by.year = FALSE,
+                               by.line = FALSE,
+                               duration, growth.habit, invasive
+)
+summ.UT.fg.cover <- pct.cover(lpi.tall = UT.lpi.veg,
+                              tall = FALSE,
+                              hit = "any",
+                              by.year = FALSE,
+                              by.line = FALSE,
+                              duration, growth.habit, invasive
+)
 
-# ## summarizing lpi data based on functional group 
-# # we're interested in shrubs, perennial grasses, and invasives
-# summ.ART.fg.cover <- pct.cover(lpi.tall = lpi.tall.layers,
-#                                tall = FALSE,
-#                                hit = "any",
-#                                by.year = FALSE,
-#                                by.line = FALSE,
-#                                duration, growth.habit, invasive
-# )
-# summ.UT.fg.cover <- pct.cover(lpi.tall = UT.lpi.tall.layers,
-#                               tall = FALSE,
-#                               hit = "any",
-#                               by.year = FALSE,
-#                               by.line = FALSE,
-#                               duration, growth.habit, invasive
-# )
-# 
-# ## summing cover values for: shrub, perennial grass, annual grass, invasive
-# # foliar cover for ART plots
-# summ.ART.fg.cover$shrub <- rowSums(summ.ART.fg.cover[,c("perennial.shrub.no", "perennial.shrub.yes")])
-# summ.ART.fg.cover$PG <- rowSums(summ.ART.fg.cover[,c("perennial.graminoid.no", "perennial.graminoid.yes")])
-# summ.ART.fg.cover$invasive <- rowSums(summ.ART.fg.cover[,grepl("yes", names(summ.ART.fg.cover))])
-# 
-# # foliar cover for reclamation and reference sites
-# summ.UT.fg.cover$shrub <- rowSums(summ.UT.fg.cover[,c("perennial.shrub.no", "perennial.shrub.yes")])
-# summ.UT.fg.cover$PG <- rowSums(summ.UT.fg.cover[,c("perennial.graminoid.no", "perennial.graminoid.yes")])
-# summ.UT.fg.cover$invasive <- rowSums(summ.UT.fg.cover[,grepl("yes", names(summ.UT.fg.cover))])
-# 
-# ## merging the reclamation, reference, and ART plots based on Site Name so they can be compared
-# # cleaning up names so they'll match for merge
-# summ.ART.fg.cover$SiteName <- gsub(replacement = "CATH FED 30 01 Well Pad",
-#                                    pattern = "Cath Fed 30 01 Well Pad",
-#                                    x = summ.ART.fg.cover$SiteName) 
-# # merging so that ART plot can be compared to their reference and reclamation
-# # each comparison has its own row
-# func.group <- merge(summ.ART.fg.cover,summ.UT.fg.cover, by = "SiteName", all.x = T)[,c("SiteName", "PlotID.x","PlotID.y", "shrub.x", "PG.x", "AG.x", "invasive.x",
-#                                                                                        "shrub.y", "PG.y", "AG.y", "invasive.y")]
-# # selecting comparisons between ART plot and its reference    
-# func.group <- func.group[grep("Reference|Ref",func.group$PlotID.y),]
+## summing cover values for: shrub, perennial grass, annual grass, invasive
+# foliar cover for ART plots
+summ.ART.fg.cover$shrub <- rowSums(summ.ART.fg.cover[,"perennial.shrub.no"]) # there are no invasive perennial shrubs
+summ.ART.fg.cover$PG <- rowSums(summ.ART.fg.cover[,c("perennial.graminoid.no", "perennial.graminoid.yes")])
+summ.ART.fg.cover$invasive <- rowSums(summ.ART.fg.cover[,grepl("yes", names(summ.ART.fg.cover))])
+
+# foliar cover for reclamation and reference sites
+summ.UT.fg.cover$shrub <- rowSums(summ.UT.fg.cover[,"perennial.shrub.no"]) # there are no invasive perennial shrubs
+summ.UT.fg.cover$PG <- rowSums(summ.UT.fg.cover[,c("perennial.graminoid.no", "perennial.graminoid.yes")])
+summ.UT.fg.cover$invasive <- rowSums(summ.UT.fg.cover[,grepl("yes", names(summ.UT.fg.cover))])
+
+## merging the reclamation, reference, and ART plots based on Site Name so they can be compared
+# cleaning up names so they'll match for merge
+summ.ART.fg.cover$SiteName <- gsub(replacement = "CATH FED 30 01 Well Pad",
+                                   pattern = "Cath Fed 30 01 Well Pad",
+                                   x = summ.ART.fg.cover$SiteName)
+## merging so that ART plot can be compared to their reference and reclamation
+# each comparison has its own row
+func.group <- merge(summ.ART.fg.cover,summ.UT.fg.cover, by = "SiteName", all.x = T)[,c("SiteName", "PlotID.x","PlotID.y", "shrub.x", "PG.x", "invasive.x",
+                                                                                       "shrub.y", "PG.y", "invasive.y")]
+## selecting comparisons between ART plot and its reference    
+func.group <- func.group[grep("Reference|Ref",func.group$PlotID.y),]
+
+## renaming columns
+colnames(func.group) <- c("SiteName", "ART.plot", "Reference", "shrub.ART", "PG.ART", "invasive.ART", 
+                          "shrub.ref", "PG.ref", "invasive.ref")
+
+write.csv(func.group,"functional.group.lpi.cover.csv")
 
 #### BRAY-CURTIS ####
 # each list component, is all the plots related to one reclamation area # used for bray-curtis
@@ -159,7 +163,8 @@ similarity <- ldply(sim.gathered, data.frame)
 similarity$bray.sim <- 1 - similarity$distance
 similarity.ref <- similarity[!grepl("Reference|Road Ref", similarity$Plot2),]  
 similarity.ref <- similarity.ref[grepl("Reference|Road Ref", similarity.ref$Plot1),]
-write.csv(similarity.ref, "bray.csv")
+
+# write.csv(similarity.ref, "bray.csv")
 
 #### SIMPSON ####
 # removing non-numeric columns that don't have numeric information otherwise you'll get an error message when trying to calculate vegdist()
@@ -205,5 +210,5 @@ diversity <- merge(x = shannon, y = simpson, by = "PlotID")[,c("SiteName.x","Plo
 # rename column so that it doesn't have th extra ".x"
 colnames(diversity)[1] <- "SiteName"
 
-write.csv(diversity, "diversity.results.csv")
+# write.csv(diversity, "diversity.results.csv")
 
