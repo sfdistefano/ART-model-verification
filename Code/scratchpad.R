@@ -1,47 +1,33 @@
+library(dplyr)
+library(tidyverse)
+library(qdapRegex)
+library(magrittr)
+
+setwd("C:/Users/sfper/Documents/R/WRFO_git/Soil.data")
+
+art.soil.data <- read.csv("art.soil.field.csv")
+UT.soil.data <- read.csv("ref.soil.field.csv")
+
+summ.art.soil <- art.soil.data %>% group_by(plot) %>% 
+  mutate(tot.rock.frag.vol = sum(horizon.rock.frag.vol), 
+         soil.pedon.depth = max(Lower.Depth)) %>%
+  dplyr::select(plot, tot.rock.frag.vol, soil.pedon.depth) %>% unique() %>%
+  mutate(site = rm_white(gsub(pattern = "FR|Plot 1|Plot 2|Well Pad|Rd", 
+                              replacement = "", x = plot))) %>%
+  mutate(site = ifelse(plot == "Cath Fed P 35 3 101 Rd Plot 1" |
+                         plot == "Cath Fed P 35 3 101 Rd Plot 2",
+                       "Cath Fed P 35 3 101 Rd", site)) 
 
 
-species.char <- as.data.frame(unique(UT.lpi.tall.layers$code))
+summ.UT.soil <- UT.soil.data %>% group_by(plot) %>% 
+  mutate(tot.rock.frag.vol = sum(horizon.rock.frag.vol), 
+         soil.pedon.depth = max(Lower.Depth)) %>% 
+  dplyr::select(plot, tot.rock.frag.vol, soil.pedon.depth) %>% unique() %>%
+  mutate(site = rm_white(gsub(pattern = "Ref", replacement = "", x = plot))) %>%
+  mutate(site = rm_white(gsub(pattern = "Fed 30 16", replacement = "Federal 30-16", x = site)))
 
-
-
-### Still working on this, right NOW imported DIMA data doesn't have species characteristics ###
-
-# ## summarizing lpi data based on functional group 
-# # we're interested in shrubs, perennial grasses, and invasives
-# summ.ART.fg.cover <- pct.cover(lpi.tall = lpi.tall.layers,
-#                                tall = FALSE,
-#                                hit = "any",
-#                                by.year = FALSE,
-#                                by.line = FALSE,
-#                                duration, growth.habit, invasive
-# )
-# summ.UT.fg.cover <- pct.cover(lpi.tall = UT.lpi.tall.layers,
-#                               tall = FALSE,
-#                               hit = "any",
-#                               by.year = FALSE,
-#                               by.line = FALSE,
-#                               duration, growth.habit, invasive
-# )
-# 
-# ## summing cover values for: shrub, perennial grass, annual grass, invasive
-# # foliar cover for ART plots
-# summ.ART.fg.cover$shrub <- rowSums(summ.ART.fg.cover[,c("perennial.shrub.no", "perennial.shrub.yes")])
-# summ.ART.fg.cover$PG <- rowSums(summ.ART.fg.cover[,c("perennial.graminoid.no", "perennial.graminoid.yes")])
-# summ.ART.fg.cover$invasive <- rowSums(summ.ART.fg.cover[,grepl("yes", names(summ.ART.fg.cover))])
-# 
-# # foliar cover for reclamation and reference sites
-# summ.UT.fg.cover$shrub <- rowSums(summ.UT.fg.cover[,c("perennial.shrub.no", "perennial.shrub.yes")])
-# summ.UT.fg.cover$PG <- rowSums(summ.UT.fg.cover[,c("perennial.graminoid.no", "perennial.graminoid.yes")])
-# summ.UT.fg.cover$invasive <- rowSums(summ.UT.fg.cover[,grepl("yes", names(summ.UT.fg.cover))])
-# 
-# ## merging the reclamation, reference, and ART plots based on Site Name so they can be compared
-# # cleaning up names so they'll match for merge
-# summ.ART.fg.cover$SiteName <- gsub(replacement = "CATH FED 30 01 Well Pad",
-#                                    pattern = "Cath Fed 30 01 Well Pad",
-#                                    x = summ.ART.fg.cover$SiteName) 
-# # merging so that ART plot can be compared to their reference and reclamation
-# # each comparison has its own row
-# func.group <- merge(summ.ART.fg.cover,summ.UT.fg.cover, by = "SiteName", all.x = T)[,c("SiteName", "PlotID.x","PlotID.y", "shrub.x", "PG.x", "AG.x", "invasive.x",
-#                                                                                        "shrub.y", "PG.y", "AG.y", "invasive.y")]
-# # selecting comparisons between ART plot and its reference    
-# func.group <- func.group[grep("Reference|Ref",func.group$PlotID.y),]
+summ.soil.wide <- merge(summ.art.soil, summ.UT.soil, by = "site") %>% 
+  select(-plot.y) %>% set_colnames(c("site", "ART.plot", "ART.rock.frag.vol", "ART.pedon.depth",
+                                      "ref.rock.frag.col", "ref.pedon.depth")) %>%
+  mutate(diff.rock.frag = abs(ART.rock.frag.vol - ref.rock.frag.col))
+                                                                             

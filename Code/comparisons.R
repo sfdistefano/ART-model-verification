@@ -12,10 +12,15 @@ setwd("C:/Users/sfper/Documents/R/WRFO_git")
 
 #### IMPORTING DATA ####
 
+# line-point-intercept (LPI) cover: total
+foliar.cover <- read.csv("foliar.cover.csv")
+foliar.cover$SiteName <- as.character(foliar.cover$SiteName)
 # line-point-intercept (LPI) cover by functional group 
 func.group <- read.csv("functional.group.lpi.cover.csv")
+func.group$SiteName <- as.character(func.group$SiteName)
 # results from vegetative similarity analysis (reference vs ART plot)
 similarity.ref <- read.csv("C:/Users/sfper/Documents/R/WRFO_git/bray.csv")
+
 # results from diversity analysis (each plot and reference has it's own diversity value)
 # NOT comparison results
 diversity <- read.csv("diversity.results.csv")[,c("SiteName", "PlotID", "simpson", "shannon")]
@@ -92,29 +97,56 @@ ART.analysis$SiteName <- as.character(ART.analysis$SiteName)
 ### CLEANING UP NAMES FOR CORRECT MATCHES ###
 # standardizing names so it can be successfully merged later
 ART.info$SiteName <- gsub(pattern = "CATH FED 30 01", replacement = "Cath Fed 30 01", x = ART.info$SiteName)
+func.group$SiteName <- gsub(pattern = "CATH FED 30 01", replacement = "Cath Fed 30 01", x = func.group$SiteName)
+foliar.cover$SiteName <- gsub(pattern = "CATH FED 30 01", replacement = "Cath Fed 30 01", x = foliar.cover$SiteName)
 
 ART.info <- ART.info %>% mutate(SiteName = ifelse(PlotID == "Cath Fed P 35 3 101 Road" & SiteName == "Cath Fed P 35 3 101 Well Pad", "Cath Fed P 35 3 101 Road", SiteName))
 ART.analysis <- ART.analysis %>% mutate(SiteName = ifelse(Plot1 == "Cath Fed P 35 3 101Road Ref" & SiteName == "Cath Fed P 35 3 101 Well Pad", "Cath Fed P 35 3 101 Road", SiteName))
+
+func.group <- func.group %>% mutate(SiteName = ifelse(Reference == "Cath Fed P 35 3 101Road Ref" & SiteName == "Cath Fed P 35 3 101 Well Pad", "Cath Fed P 35 3 101 Road", SiteName))
+foliar.cover <- foliar.cover %>% mutate(SiteName = ifelse(Reference == "Cath Fed P 35 3 101Road Ref" & SiteName == "Cath Fed P 35 3 101 Well Pad", "Cath Fed P 35 3 101 Road", SiteName))
+
+
 # renaming site names where road plots had their own reference site
 ART.info <- ART.info %>% mutate(SiteName = ifelse(PlotID == "A-30-3-101S Federal Road" & SiteName == "A-30-3-101S Federal Well Pad", "A-30-3-101S Federal Road", SiteName))
 ART.analysis <- ART.analysis %>% mutate(SiteName = ifelse(Plot2 == "A-30-3-101S Rd Plot 1" & SiteName == "A-30-3-101S Federal Reference", "A-30-3-101S Federal Road", SiteName))
 ART.analysis <- ART.analysis %>% mutate(SiteName = ifelse(Plot2 == "A-30-3-101S Rd Plot 2" & SiteName == "A-30-3-101S Federal Reference", "A-30-3-101S Federal Road", SiteName))
+func.group <- func.group %>% mutate(SiteName = ifelse(ART.plot == "A-30-3-101S Rd Plot 1" & SiteName == "A-30-3-101S Federal Reference", "A-30-3-101S Federal Road", SiteName))
+func.group <- func.group %>% mutate(SiteName = ifelse(ART.plot == "A-30-3-101S Rd Plot 2" & SiteName == "A-30-3-101S Federal Reference", "A-30-3-101S Federal Road", SiteName))
+foliar.cover <- foliar.cover %>% mutate(SiteName = ifelse(ART.plot == "A-30-3-101S Rd Plot 1" & SiteName == "A-30-3-101S Federal Reference", "A-30-3-101S Federal Road", SiteName))
+foliar.cover <- foliar.cover %>% mutate(SiteName = ifelse(ART.plot == "A-30-3-101S Rd Plot 2" & SiteName == "A-30-3-101S Federal Reference", "A-30-3-101S Federal Road", SiteName))
 
 ART.info <- ART.info %>% mutate(SiteName = ifelse(PlotID == "CATH FED 30 01 Road" & SiteName == "Cath Fed 30 01 Well Pad", "Cath Fed 30 01 Road", SiteName))
 ART.analysis <- ART.analysis %>% mutate(SiteName = ifelse(Plot2 == "Cath Fed 30 01 Rd Plot 1" & SiteName == "Cath Fed 30 01 Well Pad", "Cath Fed 30 01 Road", SiteName))
 ART.analysis <- ART.analysis %>% mutate(SiteName = ifelse(Plot2 == "Cath Fed 30 01 Rd Plot 2" & SiteName == "Cath Fed 30 01 Well Pad", "Cath Fed 30 01 Road", SiteName))
 
+func.group <- func.group %>% mutate(SiteName = ifelse(ART.plot == "Cath Fed 30 01 Rd Plot 1" & SiteName == "Cath Fed 30 01 Well Pad", "Cath Fed 30 01 Road", SiteName))
+func.group <- func.group %>% mutate(SiteName = ifelse(ART.plot == "Cath Fed 30 01 Rd Plot 2" & SiteName == "Cath Fed 30 01 Well Pad", "Cath Fed 30 01 Road", SiteName))
+
+foliar.cover <- foliar.cover %>% mutate(SiteName = ifelse(ART.plot == "Cath Fed 30 01 Rd Plot 1" & SiteName == "Cath Fed 30 01 Well Pad", "Cath Fed 30 01 Road", SiteName))
+foliar.cover <- foliar.cover %>% mutate(SiteName = ifelse(ART.plot == "Cath Fed 30 01 Rd Plot 2" & SiteName == "Cath Fed 30 01 Well Pad", "Cath Fed 30 01 Road", SiteName))
+
 ART.info <- ART.info %>% mutate(SiteName = ifelse(PlotID == "SDC 7326 FR Road" & SiteName == "Well pad SDC 7326", "SDC 7326 FR Road", SiteName))
 ART.analysis <- ART.analysis %>% mutate(SiteName = ifelse(Plot2 == "SDC 7326 FR Rd Plot 1" & SiteName == "Well pad SDC 7326", "SDC 7326 FR Road", SiteName))
 ART.analysis <- ART.analysis %>% mutate(SiteName = ifelse(Plot2 == "SDC 7326 FR Rd Plot 2" & SiteName == "Well pad SDC 7326", "SDC 7326 FR Road", SiteName))
+func.group <- func.group %>% mutate(SiteName = ifelse(ART.plot == "SDC 7326 FR Rd Plot 1" & SiteName == "Well pad SDC 7326", "SDC 7326 FR Road", SiteName))
+func.group <- func.group %>% mutate(SiteName = ifelse(ART.plot == "SDC 7326 FR Rd Plot 2" & SiteName == "Well pad SDC 7326", "SDC 7326 FR Road", SiteName))
+foliar.cover <- foliar.cover %>% mutate(SiteName = ifelse(ART.plot == "SDC 7326 FR Rd Plot 1" & SiteName == "Well pad SDC 7326", "SDC 7326 FR Road", SiteName))
+foliar.cover <- foliar.cover %>% mutate(SiteName = ifelse(ART.plot == "SDC 7326 FR Rd Plot 2" & SiteName == "Well pad SDC 7326", "SDC 7326 FR Road", SiteName))
+
+# renaming columns for later merge
+names(ART.analysis) <- c("SiteName", "Reference", "ART.plot", "bray.sim", "ART.value")
 
 # adding well pad or road abandonment date (when reclamation began)
 # adding functional group lpi data cover for ART plot and their reference
 comparisons <- merge(x = ART.analysis, y = ART.info, 
-                     by = "SiteName", all.x = T)[,c("SiteName", "Plot1", "Plot2", 
+                     by = "SiteName", all.x = T)[,c("SiteName", "Reference", "ART.plot", 
                                                     "bray.sim", "Abandon_date", "ART.value")] %>%
-               merge(func.group, by.x = c("SiteName","Plot1", "Plot2"), 
-                     by.y = c("SiteName" ,"Reference", "ART.plot"))
+               merge(func.group, by = c("SiteName", "Reference", "ART.plot")) %>%
+              merge(foliar.cover, by = c("SiteName", "Reference", "ART.plot"))
+
+# getting rid of columns with no data
+comparisons <- comparisons %>% dplyr::select(-c("X.x", "X.y"))
 
 # converting date column to a calendar date data format 
 comparisons$Abandon_date <- lubridate::mdy(comparisons$Abandon_date) # designating that the format is month/day/year
